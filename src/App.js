@@ -1,6 +1,9 @@
 import React, { Component } from 'react';
 import { Text, View, ART } from 'react-native';
 const { Surface, Group, Shape } = ART;
+import Svg,{
+  Rect,
+} from 'react-native-svg';
 
 import * as scale from 'd3-scale';
 import * as shape from 'd3-shape';
@@ -16,7 +19,37 @@ const d3 = {
   color
 };
 
-class App extends Component {
+class BarChart extends Component {
+  render() {
+    const totalWidth = 300;
+    const totalHeight = 300;
+    const data = [
+      {index: 0, value: 50},
+      {index: 1, value: 65},
+      {index: 2, value: 107},
+      {index: 3, value: 32}
+    ];
+    const x = d3.scale.scaleBand()
+      .domain(data.map((d) => d.index))
+      .rangeRound([0, totalWidth])
+      .padding(0.1);
+    const y = d3.scale.scaleLinear()
+      .domain([Math.min(...(data.map((d) => d.value))), Math.max(...(data.map((d) => d.value)))])
+      .range([0, totalHeight]);
+    data.map((d) => {
+      console.log("x: " + x(d.index) + ", y: " + y(d.value))
+    });
+    const rect = (d) => <Rect key={d.index} x={x(d.index)} width={x.bandwidth()} y={totalHeight-y(d.value)} height={y(d.value)} stroke="black"/>
+    const rects = data.map((d) => rect(d));
+    return (
+      <Svg width={totalWidth} height={totalHeight}>
+        {rects}
+      </Svg>
+    )
+  }
+}
+
+class PieChart extends Component {
   render() {
     var data = [];
     for (var i = 0; i <= 10; i++) {
@@ -41,12 +74,20 @@ class App extends Component {
         strokeWidth={1} />
     });
     return (
+      <Surface width={500} height={500}>
+        <Group x={250} y={250}>
+          {shapes}
+        </Group>
+      </Surface>
+    )
+  }
+}
+
+class App extends Component {
+  render() {
+    return (
       <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-        <Surface width={500} height={500}>
-          <Group x={250} y={250}>
-            {shapes}
-          </Group>
-        </Surface>
+        <BarChart/>
       </View>
     )
   }
