@@ -1,13 +1,13 @@
 import React, { Component } from 'react';
 import { Text, View, ART } from 'react-native';
 const { Surface, Group, Shape, LinearGradient } = ART;
+import Dimensions from 'Dimensions';
 
 import * as scale from 'd3-scale';
 import * as shape from 'd3-shape';
 import * as color from 'd3-color';
 import * as scaleChromatic from 'd3-scale-chromatic';
 import * as core from 'd3';
-import * as d3Array from 'd3-array';
 const d3 = {
   scale,
   scaleChromatic,
@@ -18,8 +18,8 @@ const d3 = {
 
 class BarChartArt extends Component {
   render() {
-    const totalWidth = 300;
-    const totalHeight = 300;
+    const totalWidth = Dimensions.get('window').width * 0.9;
+    const totalHeight = Dimensions.get('window').height * 0.9;
     const data = [
       {index: 0, value: 50},
       {index: 1, value: 65},
