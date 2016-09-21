@@ -1,13 +1,6 @@
 import React, { Component } from 'react';
 import { Text, View, ART } from 'react-native';
-const { Surface, Group, Shape } = ART;
-import Svg,{
-  Rect,
-  Line,
-  LinearGradient,
-  Stop,
-  Defs
-} from 'react-native-svg';
+const { Surface, Group, Shape, LinearGradient } = ART;
 
 import * as scale from 'd3-scale';
 import * as shape from 'd3-shape';
@@ -23,7 +16,7 @@ const d3 = {
   color
 };
 
-class BarChart extends Component {
+class BarChartArt extends Component {
   render() {
     const totalWidth = 300;
     const totalHeight = 300;
@@ -43,26 +36,28 @@ class BarChart extends Component {
     const colorScale = d3.scale.scaleSequential(d3.scaleChromatic.interpolateRdYlGn)
       .domain([60, 32])
       .clamp(true);
-    data.map((d) => {
-      console.log("value: " + d.value + ", color: " + colorScale(d.value))
-    });
-    const fill = (d, i) =>
-      <LinearGradient key={i} x1="0" x2="0" y1={totalHeight} y2={totalHeight-y(d.value)} id={"grad"+i}>
-        <Stop offset="0%" stopColor={colorScale(d.value)} stopOpacity="0.4" />
-        <Stop offset="100%" stopColor={colorScale(d.value)} stopOpacity="1" />
-      </LinearGradient>;
-    const rect = (d, i) => <Rect key={d.index} x={x(d.index)} width={x.bandwidth()} y={totalHeight-y(d.value)} height={y(d.value)} fill={"url(#grad"+i+")"}/>;
+    const rect = (d, i) => {
+      const color = colorScale(d.value);
+      const colorWithTransparency = d3.color.color(color);
+      colorWithTransparency.opacity = 0.4;
+      const stops = {'0': colorWithTransparency + "", '1': color};
+      const fill = new LinearGradient(stops, 0, totalHeight, 0, totalHeight-y(d.value));
+      const path = "M" + x(d.index) + " " + totalHeight + " " +
+        "L" + (x(d.index) + x.bandwidth()) + " " + totalHeight + " " +
+        "L" + (x(d.index) + x.bandwidth()) + " " + (totalHeight - y(d.value)) + " " +
+        "L" + x(d.index) + " " + (totalHeight - y(d.value)) + " z";
+      console.log(path);
+      return <Shape key={i} d={path} fill={fill} />
+    };
     const rects = data.map((d, i) => rect(d, i));
-    const fills = data.map((d, i) => fill(d, i));
-
+    const linePath = "M0 " + y(60) + " H" + totalWidth;
     return (
-      <Svg width={totalWidth} height={totalHeight}>
-        <Defs>
-          {fills}
-        </Defs>
-        {rects}
-        <Line x1={0} x2={totalWidth} y1={y(60)} y2={y(60)} stroke="black"/>
-      </Svg>
+      <Surface width={totalWidth} height={totalHeight+1}>
+        <Group x={0} y={0}>
+          {rects}
+          <Shape d={linePath} stroke="white" strokeWidth="1" />
+        </Group>
+      </Surface>
     )
   }
 }
@@ -105,8 +100,8 @@ class PieChart extends Component {
 class App extends Component {
   render() {
     return (
-      <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-        <BarChart/>
+      <View style={{flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: 'black'}}>
+        <BarChartArt />
       </View>
     )
   }
