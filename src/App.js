@@ -4,18 +4,25 @@ const { Surface, Group, Shape } = ART;
 
 import * as scale from 'd3-scale';
 import * as shape from 'd3-shape';
+import * as color from 'd3-color';
 import * as core from 'd3';
 import * as d3Array from 'd3-array';
 const d3 = {
   scale,
   shape,
-  core
+  core,
+  color
 };
 
 class App extends Component {
   render() {
     const data = [4, 8, 15, 16, 23, 42];
-    const colors = ['#ffffff', '#ff0000', '#00ff00', '#0000ff', '#ff00ff', '#00ffff'];
+    const dataScale = d3.scale.scaleLinear().domain([Math.min(...data), Math.max(...data)]).range([0, 1]);
+    const colorScale = d3.scale.scaleSequential(d3.scale.interpolateCool);
+    const colors = data.map(function (point) {
+      console.log(dataScale(point));
+      return colorScale(dataScale(point));
+    });
     const pie = d3.shape.pie()(data);
     const arcs = pie.map(function (arc) {
       return d3.shape.arc()(Object.assign({}, arc, {outerRadius: 100, innerRadius: 50}));
