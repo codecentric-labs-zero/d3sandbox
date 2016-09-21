@@ -5,10 +5,12 @@ const { Surface, Group, Shape } = ART;
 import * as scale from 'd3-scale';
 import * as shape from 'd3-shape';
 import * as color from 'd3-color';
+import * as scaleChromatic from 'd3-scale-chromatic';
 import * as core from 'd3';
 import * as d3Array from 'd3-array';
 const d3 = {
   scale,
+  scaleChromatic,
   shape,
   core,
   color
@@ -16,9 +18,12 @@ const d3 = {
 
 class App extends Component {
   render() {
-    const data = [4, 8, 15, 16, 23, 42];
+    var data = [];
+    for (var i = 0; i <= 10; i++) {
+      data.push(Math.random(20, 100));
+    }
     const dataScale = d3.scale.scaleLinear().domain([Math.min(...data), Math.max(...data)]).range([0, 1]);
-    const colorScale = d3.scale.scaleSequential(d3.scale.interpolateCool);
+    const colorScale = d3.scale.scaleSequential(d3.scaleChromatic.interpolateSpectral);
     const colors = data.map(function (point) {
       console.log(dataScale(point));
       return colorScale(dataScale(point));
