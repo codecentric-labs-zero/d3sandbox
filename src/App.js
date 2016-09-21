@@ -3,6 +3,10 @@ import { Text, View, ART } from 'react-native';
 const { Surface, Group, Shape } = ART;
 import Svg,{
   Rect,
+  Line,
+  LinearGradient,
+  Stop,
+  Defs
 } from 'react-native-svg';
 
 import * as scale from 'd3-scale';
@@ -34,16 +38,30 @@ class BarChart extends Component {
       .rangeRound([0, totalWidth])
       .padding(0.1);
     const y = d3.scale.scaleLinear()
-      .domain([Math.min(...(data.map((d) => d.value))), Math.max(...(data.map((d) => d.value)))])
+      .domain([0, Math.max(...(data.map((d) => d.value)))])
       .range([0, totalHeight]);
+    const colorScale = d3.scale.scaleSequential(d3.scaleChromatic.interpolateRdYlGn)
+      .domain([60, 32])
+      .clamp(true);
     data.map((d) => {
-      console.log("x: " + x(d.index) + ", y: " + y(d.value))
+      console.log("value: " + d.value + ", color: " + colorScale(d.value))
     });
-    const rect = (d) => <Rect key={d.index} x={x(d.index)} width={x.bandwidth()} y={totalHeight-y(d.value)} height={y(d.value)} stroke="black"/>
-    const rects = data.map((d) => rect(d));
+    const fill = (d, i) =>
+      <LinearGradient key={i} x1="0" x2="0" y1={totalHeight} y2={totalHeight-y(d.value)} id={"grad"+i}>
+        <Stop offset="0%" stopColor={colorScale(d.value)} stopOpacity="0.4" />
+        <Stop offset="100%" stopColor={colorScale(d.value)} stopOpacity="1" />
+      </LinearGradient>;
+    const rect = (d, i) => <Rect key={d.index} x={x(d.index)} width={x.bandwidth()} y={totalHeight-y(d.value)} height={y(d.value)} fill={"url(#grad"+i+")"}/>;
+    const rects = data.map((d, i) => rect(d, i));
+    const fills = data.map((d, i) => fill(d, i));
+
     return (
       <Svg width={totalWidth} height={totalHeight}>
+        <Defs>
+          {fills}
+        </Defs>
         {rects}
+        <Line x1={0} x2={totalWidth} y1={y(60)} y2={y(60)} stroke="black"/>
       </Svg>
     )
   }
@@ -65,6 +83,7 @@ class PieChart extends Component {
     const arcs = pie.map(function (arc) {
       return d3.shape.arc()(Object.assign({}, arc, {outerRadius: 100, innerRadius: 50}));
     });
+
     const shapes = arcs.map(function (arc, i) {
       return <Shape
         key={i}
