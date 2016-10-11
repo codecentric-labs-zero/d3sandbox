@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
-import { Text, View, ART } from 'react-native';
+import { Text, View, ART, TouchableOpacity, Dimensions, Animated } from 'react-native';
 const { Surface, Group, Shape, LinearGradient } = ART;
-import Dimensions from 'Dimensions';
 
 import * as scale from 'd3-scale';
 import * as shape from 'd3-shape';
@@ -97,12 +96,142 @@ class PieChart extends Component {
   }
 }
 
+class ColorChangingBackground extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      currentColor: 'rgb(102, 102, 102)',
+      nextColor: 'rgb(102, 102, 102)'
+    }
+    this._colorValue = new Animated.Value(0)
+    this._flash = this._flash.bind(this)
+    this._fadeOver = this._fadeOver.bind(this)
+    this._flashingAnimation = null
+    this.ORANGE = 'rgb(255, 153, 0)'
+    this.GREY = 'rgb(102, 102, 102)'
+    this.RED = 'rgb(192,33,8)'
+  }
+
+  componentWillReceiveProps(nextProps) {
+    var nextColor
+    switch (nextProps.intensity) {
+      case 0:
+        nextColor = this.GREY
+        break
+      case 1:
+        nextColor = this.ORANGE
+        break
+      default:
+        nextColor = this.RED
+        break
+    }
+    if (this.props.intensity !== nextProps.intensity) {
+      this.setState({nextColor: nextColor})
+      if (this.props.intensity === 2) {
+        this._colorValue.stopAnimation((value) => {
+          this._colorValue = new Animated.Value(100 - value)
+          this.setState({currentColor: this.RED, nextColor: this.ORANGE})
+          this._fadeOver(nextProps, nextColor);
+        })
+      } else {
+        this._colorValue = new Animated.Value(0)
+        this._fadeOver(nextProps, nextColor);
+      }
+
+    }
+  }
+
+  _fadeOver(nextProps, nextColor) {
+    Animated.timing(this._colorValue, {
+      toValue: 100,
+      duration: 1000
+    }).start((event) => {
+      if (nextProps.intensity !== 2) {
+        this.setState({currentColor: nextColor})
+      } else {
+        this.setState({currentColor: this.ORANGE, nextColor: this.RED})
+        this._flash()
+      }
+    })
+  }
+
+  render() {
+    var {height, width} = Dimensions.get('window')
+    var interpolatedColorAnimation = this._colorValue.interpolate({
+      inputRange: [0, 100],
+      outputRange: [this.state.currentColor, this.state.nextColor]
+    });
+    return (
+      <Animated.View
+        style={{
+          flex: 0,
+          flexDirection: 'column',
+          height: height,
+          width: width,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: interpolatedColorAnimation
+        }}>
+        <Text style={{color: 'white'}}>Intensity: {this.props.intensity}</Text>
+        {this.props.children}
+      </Animated.View>
+    )
+  }
+
+  _flash() {
+    Animated.sequence([
+      Animated.timing(this._colorValue, {
+        toValue: 100,
+        duration: 500,
+      }),
+      Animated.timing(this._colorValue, {
+        toValue: 0,
+        duration: 500
+      })
+    ]).start((event) => {
+      if (event.finished) {
+        this._flash();
+      }
+    });
+  }
+}
+
+let Button = (props) => {
+  return (
+    <TouchableOpacity style={{backgroundColor: 'white', margin: 20, padding: 10}} onPress={props.onPress}>
+      <Text style={{textAlign: 'center', color: 'black'}}>{props.text}</Text>
+    </TouchableOpacity>
+  )
+}
+
 class App extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      intensity: 0
+    }
+    this._increaseIntensity = this._increaseIntensity.bind(this)
+    this._decreaseIntensity = this._decreaseIntensity.bind(this)
+  }
+
+  _increaseIntensity() {
+    if (this.state.intensity < 2) {
+      this.setState({intensity: this.state.intensity + 1})
+    }
+  }
+
+  _decreaseIntensity() {
+    if (this.state.intensity > 0) {
+      this.setState({intensity: this.state.intensity - 1})
+    }
+  }
+
   render() {
     return (
-      <View style={{flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: 'black'}}>
-        <BarChartArt />
-      </View>
+      <ColorChangingBackground intensity={this.state.intensity}>
+        <Button text="Increase intensity" onPress={this._increaseIntensity} />
+        <Button text="Decrease intensity" onPress={this._decreaseIntensity} />
+      </ColorChangingBackground>
     )
   }
 }
