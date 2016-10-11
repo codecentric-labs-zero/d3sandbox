@@ -1,14 +1,27 @@
 import React, {Component} from 'react';
 import {Text, View, Animated, Image, Easing} from 'react-native';
+import TimerMixin from 'react-timer-mixin'
+
+mixins: [TimerMixin]
 
 class App extends Component {
-    constructor() {
+    constructor(props) {
         super()
         this.spinValue = new Animated.Value(0)
+        this.state = {
+            spins: 0,
+        }
     }
 
     componentDidMount() {
         this.spin()
+
+        setInterval(() => {
+            this.setState({
+                spins: this.state.spins + 1
+            })
+
+        }, 1500);
     }
 
     spin() {
@@ -17,10 +30,11 @@ class App extends Component {
             this.spinValue,
             {
                 toValue: 1,
-                duration: 4000,
+                duration: 1500,
                 easing: Easing.linear
             }
         ).start(() => this.spin())
+
     }
 
     render() {
@@ -30,9 +44,14 @@ class App extends Component {
         })
 
         return (
-            <View style={{flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: 'white'}}>
+
+            <View style={{flex: 3, alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'white'}}>
+                <View style={{flex: 1, alignItems: 'center'}}></View>
                 <Animated.Image style={{width: 227, height: 200, transform: [{rotate: spin}]}}
-                                source={{uri: 'https://s3.amazonaws.com/media-p.slid.es/uploads/alexanderfarennikov/images/1198519/reactjs.png'}}/>
+                                source={require('../res/doge.png')}/>
+                <View style={{flex: 1, alignItems: 'center', paddingTop: 40}}>
+                    <Text>Spins: {this.state.spins}</Text>
+                </View>
             </View>
         )
     }
