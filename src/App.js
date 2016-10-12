@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Text, View, ART, TouchableOpacity, Dimensions, Animated } from 'react-native';
+import { Text, View, StyleSheet, ART, TouchableOpacity, Dimensions, Animated } from 'react-native';
 const { Surface, Group, Shape, LinearGradient } = ART;
 
 import * as scale from 'd3-scale';
@@ -7,6 +7,10 @@ import * as shape from 'd3-shape';
 import * as color from 'd3-color';
 import * as scaleChromatic from 'd3-scale-chromatic';
 import * as core from 'd3';
+import TimerMixin from 'react-timer-mixin'
+
+mixins: [TimerMixin]
+
 const d3 = {
   scale,
   scaleChromatic,
@@ -95,6 +99,72 @@ class PieChart extends Component {
     )
   }
 }
+
+class Circle extends Component {
+  constructor(props) {
+    super(props)
+    this.innerRadius = 40
+    this.state = {
+      innerRadius: this.innerRadius
+    }
+    this._radius = this._radius.bind(this)
+  }
+
+  componentDidMount() {
+    setInterval(() => {
+      const val = (this.state.innerRadius + 20) % 80
+      this.setState({
+        innerRadius: val === 0 ? 40 : val
+      })
+    }, 1000);
+  }
+
+  render() {
+    return (
+        <View style={styles.container}>
+          <View style={styles.center}>
+            <View style={styles.circle}>
+              <View style={[styles.circleInner, this._radius()]} />
+            </View>
+          </View>
+        </View>
+    )
+  }
+
+  _radius() {
+    return {
+      width: this._width(),
+      height: this._width(),
+      top: (150- this._width()) / 2,
+      left: (150- this._width()) / 2,
+    };
+  }
+
+  _width() {
+    return this.state.innerRadius;
+  }
+}
+
+var styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  center: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  circle: {
+    width: 150,
+    height: 150,
+    borderRadius: 150/2,
+    backgroundColor: 'red'
+  },
+  circleInner: {
+    position: 'relative',
+    borderRadius: 150/2,
+    backgroundColor: 'yellow'
+  },
+})
 
 class ColorChangingBackground extends Component {
   constructor(props) {
@@ -253,10 +323,13 @@ class App extends Component {
 
   render() {
     return (
+    /*
       <ColorChangingBackground intensity={this.state.intensity}>
         <Button text="Increase intensity" onPress={this._increaseIntensity} />
         <Button text="Decrease intensity" onPress={this._decreaseIntensity} />
       </ColorChangingBackground>
+      */
+    <Circle />
     )
   }
 }
